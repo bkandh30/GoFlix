@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"goflix.bhavya.net/internal/data"
+	"goflix.bhavya.net/internal/validator"
 )
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +16,23 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		Runtime data.Runtime `json:"runtime"`
 		Genres  []string     `json:"genres"`
 	}
-
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
