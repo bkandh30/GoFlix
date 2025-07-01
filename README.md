@@ -18,3 +18,8 @@ A JSON API which is used to retrieve and manage information about movies using `
 | POST   | /v1/tokens/authentication | Generate a new authentication token             |
 | POST   | /v1/tokens/password-reset | Generate a new password-reset token             |
 | GET    | /debug/vars               | Display application metrics                     |
+
+<!-- TO ADD -->
+<!-- SQL Database Connection Creation -->
+<!-- SQL Migration Setup -->
+<!-- Page 129 -->
