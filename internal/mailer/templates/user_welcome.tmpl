@@ -9,6 +9,13 @@ We're excited to have you on board.
 
 For future reference, your user ID is {{.ID}}.
 
+Please send a request to `PUT v1/users/activated` endpoint with
+the following JSON body to activate your account:
+
+{"token": "{{.activationToken}}"}
+
+Please note that this is a one-time use token and it will expire in 3 days.
+
 Thanks,
 The GoFlix Team
 {{end}}
@@ -25,6 +32,12 @@ The GoFlix Team
     <p>Thanks for signing up for GoFlix!</p>
     <p>We're excited to have you on board.</p>
     <p>For future reference, your user ID is {{.ID}}.</p>
+    <p>Please send a request to the <code>PUT v1/users/activated</code> endpoint with
+    the following JSON body to activate your account:</p>
+    <pre><code>
+    {"token": "{{.activationToken}}"}
+    </code></pre>
+    <p>Please note that this is a one-time use token and it will expire in 3 days.</p>
     <p>Thanks,</p>
     <p>The GoFlix Team</p>
 </body>
