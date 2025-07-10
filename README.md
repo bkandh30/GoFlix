@@ -31,3 +31,5 @@ A JSON API which is used to retrieve and manage information about movies using `
 
 <!--Explain the make file->
 <!--How to run the migrations-->
+
+<!--Add env variables configuration-->

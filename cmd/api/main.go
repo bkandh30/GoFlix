@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"log"
 	"log/slog"
 	"os"
 	"runtime"
@@ -13,8 +14,10 @@ import (
 	"time"
 
 	"goflix.bhavya.net/internal/data"
+	"goflix.bhavya.net/internal/env"
 	"goflix.bhavya.net/internal/mailer"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -55,25 +58,30 @@ type application struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	var cfg config
 
-	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.IntVar(&cfg.port, "port", env.GetInt("PORT"), "API server port")
+	flag.StringVar(&cfg.env, "env", env.GetString("ENV"), "Environment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", env.GetString("GOFLIX_DB_DSN"), "PostgreSQL DSN")
 
-	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
-	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
-	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", env.GetInt("DB_MAX_OPEN_CONNS"), "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", env.GetInt("DB_MAX_IDLE_CONNS"), "PostgreSQL max idle connections")
+	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", env.GetDuration("DB_MAX_IDLE_TIME"), "PostgreSQL max connection idle time")
 
-	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
-	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
-	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", env.GetFloat64("LIMITER_RPS"), "Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.burst, "limiter-burst", env.GetInt("LIMITER_BURST"), "Rate limiter maximum burst")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", env.GetBool("LIMITER_ENABLED"), "Enable rate limiter")
 
-	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("GOFLIX_SMTP_HOST"), "SMTP host")
-	flag.IntVar(&cfg.smtp.port, "smtp-port", 2525, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("GOFLIX_SMTP_USERNAME"), "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("GOFLIX_SMTP_PASSWORD"), "SMTP password")
+	flag.StringVar(&cfg.smtp.host, "smtp-host", env.GetString("SMTP_HOST"), "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", env.GetInt("SMTP_PORT"), "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", env.GetString("SMTP_USERNAME"), "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", env.GetString("SMTP_PASSWORD"), "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "GoFlix <no-reply@goflix.bhavya.net>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
