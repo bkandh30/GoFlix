@@ -28,3 +28,6 @@ A JSON API which is used to retrieve and manage information about movies using `
 
 
 <!-- Add hey command for metrics-->
+
+<!--Explain the make file->
+<!--How to run the migrations-->
