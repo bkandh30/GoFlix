@@ -33,3 +33,5 @@ A JSON API which is used to retrieve and manage information about movies using `
 <!--How to run the migrations-->
 
 <!--Add env variables configuration-->
+<!--Add module vendoring commands-->
+<!-- tree -L 3 ./vendor/ -->
