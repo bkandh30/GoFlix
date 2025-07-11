@@ -80,6 +80,18 @@ Now, open the `.env` file and fill in the values for your local environment.
 
 Note: Some default values are also given in `.envExample` file that were used by me,
 
+Also create a `.envrc` file in the root of the project using:
+
+```bash
+touch .envrc
+```
+
+In this file, add the following variable and it's corresponding value:
+
+```bash
+export GOFLIX_DB_DSN=
+```
+
 ### 3. Database Migrations
 
 Migrations are used to manage the database schema. They are located in the `/migrations` directory.
