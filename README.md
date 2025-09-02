@@ -6,6 +6,7 @@ A JSON API which is used to retrieve and manage information about movies using `
 
 - [Features](#features)
 - [API Endpoints](#api-endpoints)
+- [API Testing Guide](./TESTING.md)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Clone the Repository](#1-clone-the-repository)
@@ -45,6 +46,7 @@ A JSON API which is used to retrieve and manage information about movies using `
 | PUT    | /v1/users/activated       | Activate a specific user                        |
 | PUT    | /v1/users/password        | Update the password for a specific user         |
 | POST   | /v1/tokens/authentication | Generate a new authentication token             |
+| POST   | /v1/tokens/activation     | Generate a new activation token                 |
 | POST   | /v1/tokens/password-reset | Generate a new password-reset token             |
 | GET    | /debug/vars               | Display application metrics                     |
 
@@ -135,16 +137,17 @@ tree -L 1 ./vendor/
 
 A `Makefile` is included to streamline common tasks.
 
-| Command       | Description                                                               |
-| ------------- | ------------------------------------------------------------------------- |
-| `make run`    | Runs the application in development mode with hot-reloading.              |
-| `make build`  | Builds the application binary for your current OS and architecture.       |
-| `make test`   | Runs all unit and integration tests.                                      |
-| `make tidy`   | Runs `go mod tidy` to clean up the `go.mod` file.                         |
-| `make vendor` | Runs `go mod vendor` to vendor dependencies.                              |
-| `make audit`  | Runs `go vet` and `staticcheck` to analyze the code for potential issues. |
-| `make clean`  | Removes the compiled binary.                                              |
-| `make help`   | Displays a list of all available commands.                                |
+| Command                  | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `make run/api`           | Runs the API application                 |
+| `make build/api`         | Builds the API application binary        |
+| `make db/psql`           | Connect to the database using psql       |
+| `make db/migrations/new` | Create a new database migration          |
+| `make db/migrations/up`  | Apply all up database migrations         |
+| `make tidy`              | Format code and tidy module dependencies |
+| `make audit`             | Run quality control checks and tests     |
+
+````
 
 ### Running the Application
 
@@ -152,7 +155,7 @@ To start the API server, use the `make` command:
 
 ```bash
 make run
-```
+````
 
 The server will be running on the port specified in your `.env` file (e.g., `http://localhost:4000`).
 
@@ -186,3 +189,90 @@ hey -n 10000 -c 100 "http://localhost:4000/v1/healthcheck"
 ```
 
 While that is running, check the `http://localhost:4000/debug/vars` endpoint in your browser to see metrics like the total number of active goroutines and requests.
+
+## Authentication & Authorization
+
+### Bearer Token Authentication
+
+The API uses Bearer token authentication. Include the token in the Authorization header:
+
+```
+Authorization: Bearer <your-token>
+```
+
+### Permission System
+
+The API implements a role-based permission system with the following permissions:
+
+- `movies:read` - Required to view movies
+- `movies:write` - Required to create, update, or delete movies
+
+### User Account States
+
+- **Anonymous Users**: Can register and request tokens
+- **Authenticated Users**: Have valid tokens but may need activation
+- **Activated Users**: Can access protected resources based on permissions
+
+## Rate Limiting
+
+The API implements IP-based rate limiting:
+
+- Default: 2 requests per second with a burst of 4 requests
+- Configurable via environment variables
+- Automatic cleanup of inactive clients after 3 minutes
+
+## Email Functionality
+
+The application sends automated emails for:
+
+- **Welcome emails** when users register
+- **Account activation** tokens
+- **Password reset** tokens
+
+Email templates support both plain text and HTML formats and are embedded in the application binary.
+
+## API Usage Examples
+
+### User Registration Flow
+
+1. **Register a new user:**
+
+```bash
+curl -X POST http://localhost:4000/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com", "password": "password123"}'
+```
+
+2. **Activate account** (use token from welcome email):
+
+```bash
+curl -X PUT http://localhost:4000/v1/users/activated \
+  -H "Content-Type: application/json" \
+  -d '{"token": "activation-token-from-email"}'
+```
+
+3. **Get authentication token:**
+
+```bash
+curl -X POST http://localhost:4000/v1/tokens/authentication \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "password123"}'
+```
+
+4. **Access protected resources:**
+
+```bash
+curl -X GET http://localhost:4000/v1/movies \
+  -H "Authorization: Bearer your-auth-token"
+```
+
+## Middleware Features
+
+The API includes several middleware layers:
+
+- **Panic Recovery**: Gracefully handles panics and returns 500 errors
+- **Rate Limiting**: IP-based request limiting
+- **CORS Support**: Configurable cross-origin resource sharing
+- **Authentication**: Bearer token validation
+- **Metrics Collection**: Request/response metrics via `/debug/vars`
+- **Structured Logging**: JSON-formatted application logs
