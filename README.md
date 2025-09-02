@@ -147,15 +147,13 @@ A `Makefile` is included to streamline common tasks.
 | `make tidy`              | Format code and tidy module dependencies |
 | `make audit`             | Run quality control checks and tests     |
 
-````
-
 ### Running the Application
 
 To start the API server, use the `make` command:
 
 ```bash
 make run
-````
+```
 
 The server will be running on the port specified in your `.env` file (e.g., `http://localhost:4000`).
 
